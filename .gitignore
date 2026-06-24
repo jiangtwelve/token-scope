@@ -1,0 +1,18 @@
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 子项目（独立仓库，不纳入本仓库管理）
+cc-switch/
+
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+*.log
