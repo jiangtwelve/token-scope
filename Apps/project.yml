@@ -1,0 +1,151 @@
+name: TokenScope-macOS
+
+# XcodeGen 唯一来源。生成命令：cd Apps && xcodegen generate
+# 产出：Apps/TokenScope-macOS.xcodeproj（不进 git，详见根 .gitignore 与 decisions/D-002）
+#
+# Bundle ID 占位策略：v0.1 全部 local.* 前缀，v0.2 上 Developer ID 时统一替换。
+# 详见 decisions/D-001。
+
+options:
+  bundleIdPrefix: local.tokenscope
+  deploymentTarget:
+    macOS: "14.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+# 全局 build settings（被 target 继承）
+configFiles:
+  Debug: Local.xcconfig
+  Release: Local.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    # v0.1 用 Personal Team 自动签名（详见 decisions/D-001 Revisions）
+    # DEVELOPMENT_TEAM 由 Local.xcconfig 注入（gitignored）
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "Apple Development"
+    ENABLE_HARDENED_RUNTIME: NO
+    # v0.1 不开 App Sandbox（详见 ARCHITECTURE.md §Security and privacy）
+    ENABLE_APP_SANDBOX: NO
+    # 通用编译警告
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+    GCC_TREAT_WARNINGS_AS_ERRORS: NO
+
+# 本地 SPM 包引用
+packages:
+  TSCore:
+    path: ../Packages/TSCore
+  TSProviders:
+    path: ../Packages/TSProviders
+  TSStorage:
+    path: ../Packages/TSStorage
+  TSDesignSystem:
+    path: ../Packages/TSDesignSystem
+
+targets:
+  TokenScope-macOS:
+    type: application
+    platform: macOS
+    sources:
+      - path: TokenScope-macOS
+      - path: ../Shared
+    dependencies:
+      - package: TSCore
+      - package: TSProviders
+      - package: TSStorage
+      - package: TSDesignSystem
+      # Widget Extension 自动嵌入 Embed Foundation Extensions build phase
+      - target: TokenScopeWidget-macOS
+    info:
+      path: TokenScope-macOS/Info.plist
+      properties:
+        CFBundleDisplayName: Token Scope
+        CFBundleShortVersionString: 0.1.0
+        CFBundleVersion: "1"
+        # v0.1 暂以 regular app 在 Dock 显示；M3 阶段改为 LSUIElement=YES（菜单栏 only）
+        LSUIElement: false
+    entitlements:
+      path: TokenScope-macOS/TokenScope-macOS.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.local.tokenscope.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: local.tokenscope.app
+        PRODUCT_NAME: "Token Scope"
+        GENERATE_INFOPLIST_FILE: NO
+
+  TokenScopeWidget-macOS:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: TokenScopeWidget-macOS
+      - path: ../Shared
+    # M0.11 验证 SPM link：只链 TSCore（最轻、零外部依赖）。
+    # M4 阶段加 - package: TSStorage 让 Widget 通过 App Group 读 SQLite。
+    dependencies:
+      - package: TSCore
+    info:
+      path: TokenScopeWidget-macOS/Info.plist
+      properties:
+        CFBundleDisplayName: Token Scope Widget
+        CFBundleShortVersionString: 0.1.0
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: TokenScopeWidget-macOS/TokenScopeWidget-macOS.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.local.tokenscope.shared
+        # macOS widget extension 必须 sandbox 才会被 chronod 加载到 Widget Gallery。
+        # 这是 macOS 平台硬约束，与 App target 可关 sandbox 不是一回事。
+        com.apple.security.app-sandbox: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: local.tokenscope.app.widget
+        PRODUCT_NAME: TokenScopeWidget
+        GENERATE_INFOPLIST_FILE: NO
+        # Widget 必须开 sandbox（macOS 平台硬约束），与 App target 关 sandbox 不冲突。
+        ENABLE_APP_SANDBOX: YES
+
+  TokenScope-macOSTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: TokenScope-macOSTests
+    dependencies:
+      - target: TokenScope-macOS
+      - package: TSCore
+      - package: TSProviders
+      - package: TSStorage
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: local.tokenscope.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Token Scope.app/Contents/MacOS/Token Scope"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  TokenScope-macOS:
+    build:
+      targets:
+        TokenScope-macOS: all
+    run:
+      config: Debug
+      executable: TokenScope-macOS
+    test:
+      config: Debug
+      targets:
+        - TokenScope-macOSTests
+    profile:
+      config: Release
+      executable: TokenScope-macOS
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+

@@ -16,3 +16,20 @@ node_modules/
 dist/
 build/
 *.log
+
+# Xcode / Swift
+# xcodeproj 由 XcodeGen 从 project.yml 生成，不入库（决策见 .project-governance/decisions/D-002）
+*.xcodeproj/
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcuserstatecf
+
+# Xcode workspace 个人态（共享态保留：contents.xcworkspacedata + xcshareddata/）
+*.xcworkspace/xcuserdata/
+
+# 本机签名配置：开发者各自的 Personal Team ID 不入库
+# 复制 Apps/Local.xcconfig.template → Apps/Local.xcconfig，填自己的 Team ID
+Apps/Local.xcconfig

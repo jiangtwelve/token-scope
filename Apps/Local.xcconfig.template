@@ -1,0 +1,27 @@
+// Local.xcconfig.template
+//
+// 本项目的 Personal Team 配置模板。
+//
+// 使用方法：
+//   1. 把本文件复制为 `Local.xcconfig`（同目录，不进 git）
+//   2. 把 DEVELOPMENT_TEAM 的值替换为你在 Xcode 里 Personal Team 的 10 位 Team ID
+//   3. 重跑 `xcodegen generate`（在本目录），重新编译
+//
+// 如何查 Team ID（注意：Personal Team 的 Team ID 与证书 CN 里括号内的 Membership ID 不同！）：
+//   - 推荐：在 Xcode 里打开 TokenScope.xcworkspace → 选 TokenScope-macOS target →
+//     Signing & Capabilities → Provisioning Profile 链接点开，里面的 Team ID 才是正确的
+//   - 命令行精确查法：先 build 一次让 Xcode 颁发证书，再
+//       security find-certificate -c "Apple Development" -p | \
+//         openssl x509 -text -noout | grep "Subject:"
+//     输出形如 "Subject: ..., CN=Apple Development: you@email.com (XXXX...), OU=YYYYYYYYYY, O=..."
+//     **OU 字段那 10 位** 才是 Team ID（不是 CN 括号里那 10 位）
+//
+// 为什么需要：
+//   v0.1 选择不办 $99 Developer 账号（详见 .project-governance/decisions/D-001），
+//   但 App Group 等 entitlement 在 macOS 上要求开发证书。Personal Team 是免费替代品，
+//   任何 Apple ID 都能用，本机开发签名足够。
+//
+// 团队 ID 是个人开发者标识，本身不是秘密，但仍按惯例保留在 Local.xcconfig（gitignore）
+// 中，便于其他开发者克隆代码时改成自己的 Team ID。
+
+DEVELOPMENT_TEAM = ABCDEFGHIJ

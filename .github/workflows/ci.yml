@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 详见 .project-governance/ssot/ARCHITECTURE.md §Tech stack 与 decisions/D-001。
+#
+# CI 设计原则：
+#   - 4 个 SPM 包独立 `swift test`，不依赖 Xcode workspace 或签名
+#   - macOS App + Widget Extension 用 xcodebuild 编译，但跳过 code signing
+#     （CI runner 没有作者本人的 Personal Team cert，无法实际签名；
+#     CI 只验证"代码能编译"，签名验证留给本地 `xcodebuild build`）
+#   - Personal Team 自动签名仅本地使用，CI 不需要 Apple ID（详见 D-001 Revisions）
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  spm-tests:
+    name: SPM tests (${{ matrix.package }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [TSCore, TSProviders, TSStorage, TSDesignSystem]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Show toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Run swift test
+        run: swift test --package-path Packages/${{ matrix.package }}
+
+  xcode-build:
+    name: Xcode build (App + Widget Extension)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Create stub Local.xcconfig (CI 不签名)
+        run: |
+          cat > Apps/Local.xcconfig <<'EOF'
+          // CI 占位配置：禁用 code signing，仅验证编译。
+          DEVELOPMENT_TEAM =
+          EOF
+
+      - name: Generate xcodeproj
+        run: cd Apps && xcodegen generate
+
+      - name: xcodebuild build (no signing)
+        run: |
+          xcodebuild \
+            -project Apps/TokenScope-macOS.xcodeproj \
+            -scheme TokenScope-macOS \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY= \
+            DEVELOPMENT_TEAM= \
+            build
