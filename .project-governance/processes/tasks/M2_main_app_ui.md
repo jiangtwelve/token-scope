@@ -75,6 +75,14 @@
 - [x] 最终测试 / build / governance check 通过 ↔ M2.14
 - [x] 用户明确确认
 
+## Review Log
+
+代码改动后的 review 留痕。规则见 `rules/DEVELOPMENT_PROCESS.md` "Code Review 后置" 段。`Review Method` 示例：`claude-code:/code-review`、`claude-code:/security-review`、`opencode:<review-agent-or-command>`、`codex:<review-agent-or-command>`、`project-script:<command>`、`agent-self-review`。
+
+| Date | Scope | Result | Findings | Fix Status | Review Method |
+|---|---|---|---|---|---|
+| 2026-06-26 | 全阶段 | deferred-with-user-approval | Code Review 后置规则在阶段执行时（governance 1.1.0）尚未生效 | not-applicable | governance-1.1.0-predates-rule |
+
 ## Mutation Log
 
 执行中改动留痕。规则见 `rules/DEVELOPMENT_PROCESS.md` "Task Plan 前置 · 执行中改动" 段。

@@ -72,9 +72,17 @@
 - [ ] `LowBalanceNotifier`：跨越阈值发系统通知 + 24h 去抖 ↔ M3.5, M3.6, M3.13
 - [ ] 设置面板：刷新频率、开机自启、隐藏菜单栏图标 ↔ M3.11, M3.14
 - [ ] 全部 task 表逐条勾选完成
+- [ ] 涉及代码改动的 task 已完成 Code Review，并在 Review Log 留痕（governance 1.2.2 新增红线）
 - [ ] 最终测试 / build / governance check 通过 ↔ M3.16
 - [ ] 用户本机 smoke 通过（第 4 项 unsigned 失败可记录）↔ M3.17
 - [ ] 用户明确确认
+
+## Review Log
+
+代码改动后的 review 留痕。规则见 `rules/DEVELOPMENT_PROCESS.md` "Code Review 后置" 段。`Review Method` 示例：`claude-code:/code-review`、`claude-code:/security-review`、`opencode:<review-agent-or-command>`、`codex:<review-agent-or-command>`、`project-script:<command>`、`agent-self-review`。
+
+| Date | Scope | Result | Findings | Fix Status | Review Method |
+|---|---|---|---|---|---|
 
 ## Mutation Log
 

@@ -63,7 +63,15 @@
 
 ## Task Plan
 
-每个 `acceptance_required: true` 流程阶段进入编码前必须产出。规则见 `rules/DEVELOPMENT_PROCESS.md` 的 "Task Plan 前置" 段。文件写到 `processes/tasks/<stage_id>.md`。
+**本段是 task plan 文件的唯一权威格式**。每个 `acceptance_required: true` 流程阶段进入编码前必须按本模板产出。规则见 `rules/DEVELOPMENT_PROCESS.md` 的 "Task Plan 前置" 段。文件写到 `processes/tasks/<stage_id>.md`（阶段重做时新建 `<stage_id>-rev2.md`、`<stage_id>-rev3.md` 等，旧文件保留）。
+
+格式硬规则（agent 不得自由发挥）：
+
+- 顶级段顺序必须为：`Meta` → `Tasks` → `Risks` → `Explicitly Not Doing` → `Definition of Done` → `Review Log` → `Mutation Log`。
+- 段标题、字段名、表头列名、列顺序按下方模板原样使用，不允许翻译、改写或换序。
+- `Tasks` 表表头列：`id | title | 产出 / 验证 | 预估 | 依赖`，五列必须齐全。
+- `Mutation Log` 表表头列：`Date | Change | Reason | User Confirmed`，四列必须齐全。
+- 字段含义和填写要求见 `rules/DEVELOPMENT_PROCESS.md` "必填字段（含义清单）" 段。
 
 ```markdown
 # Task Plan: <stage_id> · <name_zh>
@@ -104,7 +112,15 @@
 - [ ] done_when 第 1 条 ↔ 本表 task <id>
 - [ ] done_when 第 2 条 ↔ 本表 task <id>
 - [ ] 全部 task 表逐条勾选完成
+- [ ] 涉及代码改动的 task 已完成 Code Review，并在 Review Log 留痕
 - [ ] 用户明确确认
+
+## Review Log
+
+代码改动后的 review 留痕。规则见 `rules/DEVELOPMENT_PROCESS.md` "Code Review 后置" 段。`Review Method` 示例：`claude-code:/code-review`、`claude-code:/security-review`、`opencode:<review-agent-or-command>`、`codex:<review-agent-or-command>`、`project-script:<command>`、`agent-self-review`。
+
+| Date | Scope | Result | Findings | Fix Status | Review Method |
+|---|---|---|---|---|---|
 
 ## Mutation Log
 

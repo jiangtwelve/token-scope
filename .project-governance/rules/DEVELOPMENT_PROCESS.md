@@ -76,12 +76,12 @@
 - skill 模板不预置该目录与任何占位 README；这是为了避免让新项目误以为里面有可读内容。
 - 一个阶段对应一个文件；阶段重做时不删旧文件，新开 `<stage_id>-rev2.md` 等并在 active.md `Mutation Log` 留痕。
 
-### 必填字段
+### 必填字段（含义清单）
 
-每份 task plan 至少包含以下区段：
+每份 task plan 的**结构、字段名、表头、列顺序**严格遵循 `templates/RECORD_TEMPLATES.md` 的 `Task Plan` 段——它是唯一权威格式，agent 不允许自由发挥。本段只列字段含义，不复述结构：
 
 - `Meta`：版本号、对应阶段 ID、起草日期、`Approved At`（用户确认后填）。
-- `Tasks`：表格，每条 task 含：
+- `Tasks` 表：每条 task 一行。
   - `id`：本阶段内唯一短编号（如 `M0.1`、`M0.2`）。
   - `title`：动词开头的一句话。
   - `产出 / 验证`：可肉眼检查或机器跑过的具体产物（文件路径、命令、可见行为）。
@@ -90,9 +90,8 @@
 - `Risks`：工作量黑洞与未知阻塞点。**不是**流程模板里的 `typical_pitfalls`（那是流程级提醒）；这里写本次实例的预估外风险，每条附"触发条件 + 兜底动作"。
 - `Explicitly Not Doing`：明确划走的事（避免边界蔓延）。
 - `Definition of Done`：与 active.md 对应阶段的 `done_when` 一一映射 + 本 task plan 自检条（如"已逐条勾选 task table"）。
-- `Mutation Log`：执行中改动留痕表（Date / Change / Reason / User Confirmed）。
-
-模板见 `templates/RECORD_TEMPLATES.md` 的 `Task Plan` 段。
+- `Review Log`：代码改动后的审查留痕表。表头 `Date / Scope / Result / Findings / Fix Status / Review Method` 顺序不可调。
+- `Mutation Log`：执行中改动留痕表。表头 `Date / Change / Reason / User Confirmed` 顺序不可调。
 
 ### 颗粒度判定
 
@@ -100,7 +99,7 @@
 
 - 单条 task 产出 ≤ 1 个文件 / ≤ 1 个 entitlement / ≤ 1 个 CI 步骤；否则继续拆。
 - 单条 task 预估超过 1 小时的，必须拆（高估比低估更危险）。
-- 全表 task 数量上限默认 20 条；超出时反问用户是否阶段拆得过大。
+- 全表 task 数量超过 20 条时触发反问阈值：agent 反问用户是否阶段拆得过大；用户坚持继续也允许，不是硬上限。
 
 ### 审批
 
@@ -112,14 +111,77 @@
 
 - 已确认的 task plan 在阶段执行中允许追加 / 调整 / 删除 task，但每条改动必须：
   - 写入 task plan 文件的 `Mutation Log` 表。
-  - 单次累计改动数量超过 `Process Mutation Threshold`（默认 3，与流程级阈值复用）时，agent 必须反问：是否本阶段拆解过粗、应当回到"task plan 重写"而不是继续打补丁。
+  - 单次累计改动数量超过 `Task Mutation Threshold`（记录在 `ssot/PROJECT_STATE.md` 的 `Active Version` 段，默认 3）时，agent 必须反问：是否本阶段拆解过粗、应当回到"task plan 重写"而不是继续打补丁。
 - 改动等于跳过的不允许：用户明确指示"跳过这条"也必须先写入 Mutation Log，附跳过原因，再继续。
+
+> 阈值说明：`Task Mutation Threshold` 与流程级的 `Process Mutation Threshold` 是两个独立字段，默认均为 3。task 级 churn 上限保守起步是有意的——超过 3 次执行级返工通常意味着拆解不当，宁可回到重拆而不是继续打补丁。项目实际跑过一轮后用户可独立放宽到 5–7。
+
+### 流程改动对 task plan 的影响
+
+- 实际开发段内部流程一旦被改动并确认（参见上节"实际开发段内部流程的可变性"），本段重启时**所有未完成阶段的 task plan 立即失效**。
+- 旧 task plan 文件**保留**作为新流程下"重叠产物研判"的参考材料，不删除。
+- 新流程下每个 `acceptance_required: true` 阶段必须重新起草 task plan，文件命名沿用 rev 递增规则（见下文"文件位置"）。
+- 已完成（用户已确认验收）的阶段，其 task plan 文件保留为历史记录；新流程下如该阶段仍存在且需要重做，按 rev 递增起新 task plan。
 
 ### 与流程改动的层级区分
 
-- **task plan 改动**：同一流程阶段内的执行级调整，写在 task plan 文件的 `Mutation Log`。
-- **流程阶段改动**（加 / 删 / 重排 / 改 stage）：流程级变更，按上一节"实际开发段内部流程的可变性"处理，写在 `processes/active.md` 的 `Mutation Log`。
+- **task plan 改动**：同一流程阶段内的执行级调整，写在 task plan 文件的 `Mutation Log`，受 `Task Mutation Threshold` 约束。
+- **流程阶段改动**（加 / 删 / 重排 / 改 stage）：流程级变更，按上节"实际开发段内部流程的可变性"处理，写在 `processes/active.md` 的 `Mutation Log`，受 `Process Mutation Threshold` 约束。
 - 发现 task 拆完后 done_when 仍达不成，是流程级问题，触发流程改动协议；发现某条具体 task 实施有偏差，是 task plan 级问题，走 task plan Mutation Log。
+
+## Code Review 后置（代码改动后的逻辑漏洞审查红线）
+
+任何 task 只要涉及代码新增、修改或删除，完成代码改动后必须先插入 code review，才能标记 task 完成或进入下一编码 task。
+
+### 触发条件
+
+以下任一动作都触发 code review：
+
+- 新增、修改、删除源码、配置、脚本、测试、数据库迁移、构建文件。
+- 调整会改变运行行为的文档生成脚本、CI/CD、依赖版本或环境配置。
+- 修复 review 中发现的问题后，必须对新 diff 再做一次 review。
+
+纯文档措辞、注释、格式化、无行为变化的重命名可豁免；豁免必须写入 task plan `Mutation Log` 或 task 执行记录，说明"不涉及运行逻辑"。
+
+### Review 内容
+
+code review 至少检查：
+
+- 是否完成 task plan 对应 task 的 `产出 / 验证`，有没有偏离 task 边界。
+- 是否存在逻辑漏洞、边界条件遗漏、错误处理缺失、状态不一致、数据丢失风险。
+- 是否引入安全问题（输入未校验、权限绕过、敏感信息泄漏、路径/命令注入等）。
+- 是否有不必要的复杂度、重复实现、可读性明显下降。
+- 测试或验证是否覆盖本次改动的关键路径。
+
+### Review 执行方式
+
+- 默认优先使用**当前开发环境可用的独立审查能力**：
+  - Claude Code：通用代码审查可用 `/code-review`；安全敏感改动可用 `/security-review`。
+  - OpenCode、Codex 或其他 agent 环境：使用等价的 review agent、review command、审查模式或插件。
+  - 项目自带 review 脚本 / CI / 静态分析工具可以作为补充，但不能替代逻辑审查。
+- 外部审查能力不可用、项目无专门工具、或当前环境无法调用时，agent 才允许按本段清单自审。
+- 不论使用外部 skill、项目工具、其他 agent 环境的等价能力，还是自审，都必须把结果写回对应 task plan 的 `Review Log`。
+
+### Review Log 记录要求
+
+每次 review 至少记录：
+
+- `Review Method`：使用的方式，例如 `claude-code:/code-review`、`claude-code:/security-review`、`opencode:<review-agent-or-command>`、`codex:<review-agent-or-command>`、`project-script:<command>`、`agent-self-review`。
+- `Result`：`pass` / `needs-fix` / `blocked` / `deferred-with-user-approval`。
+- `Findings`：只写关键发现摘要，不搬运外部审查工具的全文输出。
+- `Fix Status`：`fixed` / `deferred` / `not-applicable`，若 deferred 必须写明用户确认。
+
+外部审查结果是输入，不是最终通行证：发现 CRITICAL / HIGH 问题时仍必须修复并重新 review。
+
+### Review 结果处理
+
+- 发现 CRITICAL 或 HIGH 问题：必须先修复，再重新 code review；不得继续后续编码 task。
+- 只有 LOW / MEDIUM 建议且用户确认可延后时，才允许继续；延后项必须写入 task plan `Mutation Log` 或 Backlog。
+- review 通过后，在对应 task plan 的 `Review Log` 记录：日期、范围、结果、发现问题、修复状态、review 方式。
+
+### 与验收的关系
+
+code review 不是用户验收的替代。review 只证明本次代码改动没有明显逻辑漏洞和质量阻断；阶段是否完成仍以 active.md 对应阶段的 `done_when` 与用户明确确认为准。
 
 ## 阶段回归
 

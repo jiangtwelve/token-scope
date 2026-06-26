@@ -7,6 +7,7 @@
 - Current Version: v0.1
 - Active Process: `.project-governance/processes/active.md`（`macos-native-mmf-first-v1`）
 - Process Mutation Threshold: 3
+- Task Mutation Threshold: 3
 
 ## Versions
 
@@ -27,6 +28,7 @@
 
 - Current goal: 起草 M3_ambient_layer 颗粒级 task plan；用户 review 通过后再进入 M3 编码。
 - Completed:
+  - **Governance 升级 1.1.0 → 1.2.2 ✅**（2026-06-26）：新增 Code Review 后置红线 + 每个 task plan 必备 Review Log 段 + Task Plan 模板结构硬化 + Task Mutation Threshold 字段（默认 3）+ check-governance.sh advisory 校验。所有现有 task plan 已补 Review Log；M0/M1/M1_review_fixes/M2 已完成阶段标记为 `deferred-with-user-approval`（governance 1.1.0 时规则未生效）；M3 DoD 新增 Code Review 检查项。
   - v0.1 第一段「需求确认」：PRD 通过用户明确确认。
   - v0.1 第二段「技术栈确认」：ARCHITECTURE 收口、6 项核心技术决策记录到 decisions/、Active Process 起草并确认。
   - Governance 升级到 1.1.0：增加 "Task Plan 前置" 红线。
